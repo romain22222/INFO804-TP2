@@ -1,0 +1,8 @@
+/.qglviewer*.xml
+/.qmake.stash
+/Makefile
+/ray-tracer
+/*.o
+/Images/*
+/output.ppm
+/.idea/*
