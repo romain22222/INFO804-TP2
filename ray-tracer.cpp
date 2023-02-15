@@ -11,7 +11,15 @@
 
 using namespace std;
 using namespace rt;
-
+void addBubble( Scene& scene, Point3 c, Real r, Material transp_m )
+{
+	Material revert_m = transp_m;
+	std::swap( revert_m.in_refractive_index, revert_m.out_refractive_index );
+	Sphere* sphere_out = new Sphere( c, r, transp_m );
+	Sphere* sphere_in  = new Sphere( c, r-0.02f, revert_m );
+	scene.addObject( sphere_out );
+	scene.addObject( sphere_in );
+}
 int main(int argc, char** argv)
 {
 	// Read command lines arguments.
@@ -22,17 +30,30 @@ int main(int argc, char** argv)
 
 	// Light at infinity
 	Light* light0 = new PointLight( GL_LIGHT0, Point4( 0,0,1,0 ),
-																		Color( 1.0, 1.0, 1.0 ) );
-	Light* light1 = new PointLight( GL_LIGHT1, Point4( 7,5,15,1 ),
-																	Color( 1.0, 1.0, 1.0 ) );
+									Color( 1.0, 1.0, 1.0 ) );
+	Light* light1 = new PointLight( GL_LIGHT1, Point4( -10,-4,2,1 ),
+									Color( 1.0, 1.0, 1.0 ) );
 	scene.addLight( light0 );
 	scene.addLight( light1 );
 
 	// Objects
 	Sphere* sphere1 = new Sphere( Point3( 0, 0, 0), 2.0, Material::bronze() );
 	Sphere* sphere2 = new Sphere( Point3( 0, 4, 0), 1.0, Material::emerald() );
+	Sphere* sphere3 = new Sphere( Point3( 6, 6, 0), 3.0, Material::whitePlastic() );
 	scene.addObject( sphere1 );
 	scene.addObject( sphere2 );
+	scene.addObject( sphere3 );
+	addBubble( scene, Point3( -5, 4, -1 ), 2.0, Material::glass() );
+
+	// Un sol noir et blanc
+	PeriodicPlane* wbplane = new PeriodicPlane( Point3( 0, 0, -20 ), Vector3( 5, 0, 0 ), Vector3( 0, 5, 0 ),
+											   Material::whitePlastic(), Material::blackMatter(), 0.05f );
+	scene.addObject(wbplane);
+
+// Un mur de building "moderne" à gauche.
+	PeriodicPlane* buildplane = new PeriodicPlane( Point3( -10, 0, 0 ), Vector3( 0, 2, 0 ), Vector3( 0, 0, 4 ),
+											   Material::mirror(), Material::blackMatter(), 0.025f );
+	scene.addObject(buildplane);
 
 	// Instantiate the viewer.
 	Viewer viewer;

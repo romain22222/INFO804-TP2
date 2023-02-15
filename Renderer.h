@@ -182,13 +182,13 @@ namespace rt {
 			// tant que c'est pas noir
 			while (C.max() > .003f) {
 				//on déplace légèrement p vers L pour éviter d'intersecter l'objet initial.
-				p = p + .0001f * L;
+				p = p + .01f * L;
 
 				Point3 p_i;
 				GraphicalObject* obj_i = 0;
 				Ray rp = Ray(p, L);
 				auto ri = ptrScene->rayIntersection(rp, obj_i, p_i);
-				if (ri >= 0) break;
+				if (ri > 0) break;
 				// on récupère le matériau m de l'objet au point p' d'intersection
 				auto m = obj_i->getMaterial(p_i);
 				// C est multiplié par la couleur diffuse et le coefficient de refraction de m
@@ -199,13 +199,23 @@ namespace rt {
 			return C;
 		}
 
+		Ray refractionRay( const Ray& aRay, const Point3& p, Vector3 N, const Material& m ) {
+			auto V = aRay.direction;
+			// C > 0 -> extérieur
+			// C < 0 -> intérieur
+			auto c = - V.dot(N);
+			Real r = c > 0 ? m.out_refractive_index / m.in_refractive_index : m.in_refractive_index / m.out_refractive_index;
+			auto dir = (1. - r*r*(1.-c*c)) > 0 ? r * V + (r*c + Real((c > 0 ? -1. : 1.) * sqrt(1. - r*r*(1.-c*c)))) * N : reflect(V, N);
+			return Ray(p + dir * .01f, dir, aRay.depth - 1);
+		}
+
 
 		/// The rendering routine for one ray.
 		/// @return the color for the given ray.
 		Color trace( const Ray& ray )
 		{
 			assert( ptrScene != 0 );
-			Color result = Color( 0.0, 0.0, 0.0 );
+			Color C = Color( 0.0, 0.0, 0.0 );
 			GraphicalObject* obj_i = 0; // pointer to intersected object
 			Point3					 p_i;			 // point of intersection
 
@@ -217,8 +227,21 @@ namespace rt {
 			// calculer la somme des couleurs diffuses et ambientes
 
 			// return obj_i->getMaterial(p_i).diffuse + obj_i->getMaterial(p_i).ambient;
+			auto m = obj_i->getMaterial(p_i);
+			if (ray.depth > 0 && m.coef_reflexion != 0) {
+				Ray ray_refl(ray.origin, reflect(ray.direction, obj_i->getNormal(p_i)), ray.depth - 1);
+				auto C_refl = trace(ray_refl);
+				C = C + C_refl * m.specular * m.coef_reflexion;
+			}
 
-			return illumination(ray, obj_i, p_i);
+			if (ray.depth > 0 && m.coef_refraction != 0) {
+				Ray ray_refr = refractionRay(ray, p_i, obj_i->getNormal(p_i), m);
+				auto C_refr = trace(ray_refr);
+				C = C + C_refr * m.diffuse * m.coef_refraction;
+			}
+
+			C = C + illumination(ray, obj_i, p_i) * (ray.depth > 0 ? m.coef_diffusion : 1);
+			return C;
 		}
 
 		/// Calcule le vecteur réfléchi à W selon la normale N.
@@ -240,27 +263,26 @@ namespace rt {
 				Vector3 N = obj->getNormal(p);
 				Real kd = L.dot(N);
 				// (d = 0.0 si négatif)
-				if (kd < 0) kd = 0;
+				if (kd < 0) kd = 0.0;
 				// On ajoute à C la couleur produit entre la couleur de la lumière B, la couleur diffuse du matériau D et son coefficient de diffusion
 				c = c + kd * m.diffuse * light->color(p);
 
 				// la direction miroir W de V par rapport à la normale N au point p
 				Vector3 w = reflect(v, N);
 				// on calcule le cosinus β de l'angle entre W et la direction L de la lumière l
-				auto beta = L.dot(w);
+				auto beta = L.dot(w) / (w.norm() * L.norm());
 
 				//si il est négatif il n'y a pas de spécularité.
-				if (beta < 0) continue;
+				if (beta > 0) {
+					//on utilise la brillance s du matériau (shinyness) pour régler la taille de la tache
+					//le coefficient de spécularité ks←βs (utilisez pow)
+					Real ks = pow(beta, m.shinyness);
 
-				//on utilise la brillance s du matériau (shinyness) pour régler la taille de la tache
-				//le coefficient de spécularité ks←βs (utilisez pow)
-				Real ks = pow(beta, m.shinyness);
+					//ajoute à C la couleur produit entre couleur de la lumière, la couleur spéculaire et son coefficient de spécularité ks.
+					c = c + ks * m.specular;
+				}
 
-				//ajoute à C la couleur produit entre couleur de la lumière, la couleur spéculaire et son coefficient de spécularité ks.
-				c = c + ks * m.specular * light->color(p);
-
-
-				Color sc = shadow(Ray(p, light->direction(p)), light->color(p));
+				Color sc = shadow(Ray(p, L), light->color(p));
 				c = c * sc;
 			}
 			// On ajoute à C la couleur ambiente et on retourne le résultat.

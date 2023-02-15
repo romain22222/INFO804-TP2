@@ -86,7 +86,7 @@ namespace rt {
 		Real dist = INFINITY;
 		for (auto o : myObjects) {
 			//si le rayon intersecte l'objet, alors
-			if (o->rayIntersection(ray, tmp) <= 0) {
+			if (o->rayIntersection(ray, tmp) < 0) {
 
 				// distance entre l'origine et le point d'intersection.
 				//si cette distance est plus courte que la précédente, l'objet courant devient l'objet intersecté.
@@ -97,7 +97,7 @@ namespace rt {
 				}
 			}
 		}
-		return dist != INFINITY ? -1 : 1;
+		return dist != INFINITY ? -dist : 1;
 		}
 
 	private:

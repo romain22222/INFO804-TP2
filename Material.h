@@ -140,6 +140,36 @@ namespace rt {
 			m.out_refractive_index = 1.0f;
 			return m;
 		}
+
+		static Material mirror()
+		{
+			Material m;
+			m.ambient	 = Color(1.,1.,1.);
+			m.diffuse	 = Color(1.,1.,1.);
+			m.specular	= Color(1.,1.,1.);
+			m.shinyness = 80.0f;
+			m.coef_diffusion	= 0.01f;
+			m.coef_reflexion	= .99f;
+			m.coef_refraction = 0.0f;
+			m.in_refractive_index	= 1.0f;
+			m.out_refractive_index = 1.0f;
+			return m;
+		}
+
+		static Material blackMatter()
+		{
+			Material m;
+			m.ambient	 = Color();
+			m.diffuse	 = Color();
+			m.specular	= Color();
+			m.shinyness = 1.0f;
+			m.coef_diffusion	= 0.01f;
+			m.coef_reflexion	= 0.f;
+			m.coef_refraction = 0.f;
+			m.in_refractive_index	= 1.0f;
+			m.out_refractive_index = 1.0f;
+			return m;
+		}
 	};
 
 

@@ -8,6 +8,10 @@
 #include "Renderer.h"
 #include "Image2D.h"
 #include "Image2DWriter.h"
+#include <iomanip>
+#include <ctime>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -81,7 +85,19 @@ rt::Viewer::keyPressEvent(QKeyEvent *e)
 			Image2D<Color> image( w, h );
 			renderer.setResolution( image.w(), image.h() );
 		 renderer.render( image, maxDepth );
-			ofstream output( "output.ppm" );
+
+
+			mkdir("renders", 0777);
+			std::array<char, 64> buffer;
+			buffer.fill(0);
+			time_t rawtime;
+			time(&rawtime);
+			const auto timeinfo = localtime(&rawtime);
+			strftime(buffer.data(), sizeof(buffer), "%d-%m-%Y %H-%M-%S", timeinfo);
+			string fold = "./renders/output_";
+			string ts = string(buffer.data());
+			string ext = ".ppm";
+			ofstream output( fold + ts + ext );
 			Image2DWriter<Color>::write( image, output, true );
 			output.close();
 			handled = true;

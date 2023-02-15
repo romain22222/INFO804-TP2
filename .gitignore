@@ -4,6 +4,6 @@
 /ray-tracer
 /*.o
 /Images/*
-/output.ppm
+/renders/*
 /.idea/*
 /README-prof.md
