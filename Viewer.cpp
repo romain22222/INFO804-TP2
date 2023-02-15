@@ -38,6 +38,9 @@ rt::Viewer::init()
 	setKeyDescription(Qt::Key_R, "Renders the scene with a ray-tracer (low resolution)");
 	setKeyDescription(Qt::SHIFT+Qt::Key_R, "Renders the scene with a ray-tracer (medium resolution)");
 	setKeyDescription(Qt::CTRL+Qt::Key_R, "Renders the scene with a ray-tracer (high resolution)");
+	setKeyDescription(Qt::Key_J, "Renders the scene with a ray-tracer with anti-aliasing (low resolution)");
+	setKeyDescription(Qt::SHIFT+Qt::Key_J, "Renders the scene with a ray-tracer with anti-aliasing (medium resolution)");
+	setKeyDescription(Qt::CTRL+Qt::Key_J, "Renders the scene with a ray-tracer with anti-aliasing (high resolution)");
 	setKeyDescription(Qt::Key_D, "Augments the max depth of ray-tracing algorithm");
 	setKeyDescription(Qt::SHIFT+Qt::Key_D, "Decreases the max depth of ray-tracing algorithm");
 
@@ -102,6 +105,46 @@ rt::Viewer::keyPressEvent(QKeyEvent *e)
 			output.close();
 			handled = true;
 		}
+	if ((e->key()==Qt::Key_J) && ptrScene != 0 )
+	{
+		int w = camera()->screenWidth();
+		int h = camera()->screenHeight();
+		Renderer renderer( *ptrScene );
+		MyBackground mb;
+		renderer.ptrBackground = &mb;
+		qglviewer::Vec orig, dir;
+		camera()->convertClickToLine( QPoint( 0,0 ), orig, dir );
+		Vector3 origin( orig );
+		Vector3 dirUL( dir );
+		camera()->convertClickToLine( QPoint( w,0 ), orig, dir );
+		Vector3 dirUR( dir );
+		camera()->convertClickToLine( QPoint( 0, h ), orig, dir );
+		Vector3 dirLL( dir );
+		camera()->convertClickToLine( QPoint( w, h ), orig, dir );
+		Vector3 dirLR( dir );
+		renderer.setViewBox( origin, dirUL, dirUR, dirLL, dirLR );
+		if ( modifiers == Qt::ShiftModifier ) { w /= 2; h /= 2; }
+		else if ( modifiers == Qt::NoModifier ) { w /= 8; h /= 8; }
+		Image2D<Color> image( w, h );
+		renderer.setResolution( image.w(), image.h() );
+		renderer.randomRender( image, maxDepth, 10, 5, 0.01f );
+
+
+		mkdir("renders", 0777);
+		std::array<char, 64> buffer;
+		buffer.fill(0);
+		time_t rawtime;
+		time(&rawtime);
+		const auto timeinfo = localtime(&rawtime);
+		strftime(buffer.data(), sizeof(buffer), "%d-%m-%Y %H-%M-%S", timeinfo);
+		string fold = "./renders/output_";
+		string ts = string(buffer.data());
+		string ext = ".ppm";
+		ofstream output( fold + ts + ext );
+		Image2DWriter<Color>::write( image, output, true );
+		output.close();
+		handled = true;
+	}
 	if (e->key()==Qt::Key_D)
 		{
 			if ( modifiers == Qt::ShiftModifier )
@@ -135,5 +178,9 @@ rt::Viewer::helpString() const
 	text += "Press <b>R</b> to render the scene (low resolution).";
 	text += "Press <b>Shift+R</b> to render the scene (medium resolution).";
 	text += "Press <b>Ctrl+R</b> to render the scene (high resolution).";
+
+	text += "Press <b>J</b> to render the scene with anti-aliasing (low resolution).";
+	text += "Press <b>Shift+J</b> to render the scene with anti-aliasing (medium resolution).";
+	text += "Press <b>Ctrl+J</b> to render the scene with anti-aliasing (high resolution).";
 	return text;
 }

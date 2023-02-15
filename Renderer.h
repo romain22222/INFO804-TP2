@@ -14,6 +14,10 @@
 /// Namespace RayTracer
 namespace rt {
 
+	Real randomBetween(Real i, Real j) {
+		return Real(i + static_cast <float> (rand()) / ( static_cast <float> (RAND_MAX/j-i)));
+	}
+
 	inline void progressBar( std::ostream& output,
 													 const double currentValue, const double maximumValue)
 	{
@@ -164,6 +168,42 @@ namespace rt {
 							image.at( x, y ) = result.clamp();
 						}
 				}
+			std::cout << "Done." << std::endl;
+		}
+
+		void randomRender( Image2D<Color>& image, int max_depth, int nb_ray_by_pixel, int start_considering_check_mean, Real delta_min_mean )
+		{
+			std::cout << "Rendering into image ... might take a while." << std::endl;
+			image = Image2D<Color>( myWidth, myHeight );
+			Real deltaMaxX = 1.f / (Real)(myWidth-1);
+			for ( int y = 0; y < myHeight; ++y )
+			{
+				Real		ty	 = (Real) y / (Real)(myHeight-1);
+				progressBar( std::cout, ty, 1.0 );
+				Vector3 dirL = (1.0f - ty) * myDirUL + ty * myDirLL;
+				Vector3 dirR = (1.0f - ty) * myDirUR + ty * myDirLR;
+				dirL				/= dirL.norm();
+				dirR				/= dirR.norm();
+				for ( int x = 0; x < myWidth; ++x )
+				{
+					Color result;
+					Real		tx	 = (Real) x / (Real)(myWidth-1);
+					int i = 0;
+					while (i < nb_ray_by_pixel) {
+						Real var = randomBetween(0.f, deltaMaxX);
+						Vector3 dir	= (1.0f - tx - var) * dirL + (tx + var) * dirR;
+						Ray eye_ray	= Ray( myOrigin, dir, max_depth );
+						Color tmp = trace( eye_ray );
+						if (i > start_considering_check_mean) {
+							if (distance(tmp,result * (1.f/(float)i)) < delta_min_mean) break;
+						}
+						result += tmp;
+						i++;
+					}
+					result = result * (1.f/(float)i);
+					image.at( x, y ) = result.clamp();
+				}
+			}
 			std::cout << "Done." << std::endl;
 		}
 
