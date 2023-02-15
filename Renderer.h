@@ -9,6 +9,7 @@
 #include "Color.h"
 #include "Image2D.h"
 #include "Ray.h"
+#include "Material.h"
 
 /// Namespace RayTracer
 namespace rt {
@@ -187,10 +188,10 @@ namespace rt {
 				Point3 p_i;
 				GraphicalObject* obj_i = 0;
 				Ray rp = Ray(p, L);
-				auto ri = ptrScene->rayIntersection(rp, obj_i, p_i);
+				Real ri = ptrScene->rayIntersection(rp, obj_i, p_i);
 				if (ri > 0) break;
 				// on récupère le matériau m de l'objet au point p' d'intersection
-				auto m = obj_i->getMaterial(p_i);
+				Material m = obj_i->getMaterial(p_i);
 				// C est multiplié par la couleur diffuse et le coefficient de refraction de m
 				C = C * m.diffuse * m.coef_refraction;
 				//p <- p'
@@ -229,7 +230,8 @@ namespace rt {
 			// return obj_i->getMaterial(p_i).diffuse + obj_i->getMaterial(p_i).ambient;
 			auto m = obj_i->getMaterial(p_i);
 			if (ray.depth > 0 && m.coef_reflexion != 0) {
-				Ray ray_refl(ray.origin, reflect(ray.direction, obj_i->getNormal(p_i)), ray.depth - 1);
+				auto rd = reflect(ray.direction, obj_i->getNormal(p_i));
+				Ray ray_refl(ray.origin + rd * .01f, rd, ray.depth - 1);
 				auto C_refl = trace(ray_refl);
 				C = C + C_refl * m.specular * m.coef_reflexion;
 			}
@@ -246,29 +248,30 @@ namespace rt {
 
 		/// Calcule le vecteur réfléchi à W selon la normale N.
 		Vector3 reflect( const Vector3& V, Vector3 N ) const {
-			return V - 2 * (N.dot(V)) * N;
+			return V - 2 * N.dot(V) * N;
 		}
 
 		/// Calcule l'illumination de l'objet \a obj au point \a p, sachant que l'observateur est le rayon \a ray.
 		Color illumination( const Ray& ray, GraphicalObject* obj, Point3 p ) {
 			auto m = obj->getMaterial(p);
 			auto c = Color();
+			Vector3 N = obj->getNormal(p);
 
 			// V la direction du rayon ray venant de l'oeil
 			auto v = ray.direction;
+
+			// la direction miroir W de V par rapport à la normale N au point p
+			Vector3 w = reflect(v, N);
+
 			for (auto light : ptrScene->myLights) {
 				// On récupère sa direction L
 				Vector3 L = light->direction(p);
+				auto B = light->color(p);
 				// On calcule le coefficient de diffusion kd comme le cosinus de l'angle entre L et la normale N au point p
-				Vector3 N = obj->getNormal(p);
 				Real kd = L.dot(N);
-				// (d = 0.0 si négatif)
-				if (kd < 0) kd = 0.0;
 				// On ajoute à C la couleur produit entre la couleur de la lumière B, la couleur diffuse du matériau D et son coefficient de diffusion
-				c = c + kd * m.diffuse * light->color(p);
+				if (kd > 0) c = c + kd * m.diffuse * light->color(p);
 
-				// la direction miroir W de V par rapport à la normale N au point p
-				Vector3 w = reflect(v, N);
 				// on calcule le cosinus β de l'angle entre W et la direction L de la lumière l
 				auto beta = L.dot(w) / (w.norm() * L.norm());
 
@@ -282,7 +285,7 @@ namespace rt {
 					c = c + ks * m.specular;
 				}
 
-				Color sc = shadow(Ray(p, L), light->color(p));
+				Color sc = shadow(Ray(p, L), B);
 				c = c * sc;
 			}
 			// On ajoute à C la couleur ambiente et on retourne le résultat.

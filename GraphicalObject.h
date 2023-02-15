@@ -11,6 +11,7 @@
 #include "PointVector.h"
 #include "Material.h"
 #include "Ray.h"
+#include <math.h>
 
 /// Namespace RayTracer
 namespace rt {
@@ -71,8 +72,8 @@ namespace rt {
 					   : _c(c), _u(u), _v(v), _main_m(main_m), _band_m(band_m), _w(w) {};
 
 		void coordinates( Point3 p, Real& x, Real& y ) {
-			x = p[0] + _u[0] + _v[0];
-			y = p[1] + _u[1] + _v[1];
+			x = (_c - p).dot(_u) / _u.norm();
+			y = (_c - p).dot(_v) / _v.norm();
 		}
 
 		void init(Viewer & /* viewer */) override {}
@@ -85,8 +86,8 @@ namespace rt {
 			glMaterialfv(GL_FRONT, GL_SPECULAR, _main_m.specular);
 			glMaterialf(GL_FRONT, GL_SHININESS, _main_m.shinyness);
 			glVertex3f(_c[0], _c[1], _c[2]);
-			glVertex3f(_c[0] + _u[0], _c[1] + _u[1], _c[2] + _u[2]);
-			glVertex3f(_c[0] + _v[0], _c[1] + _v[1], _c[2] + _v[2]);
+			glVertex3f(_c[0] + _u[0]*1000, _c[1] + _u[1]*1000, _c[2] + _u[2]*1000);
+			glVertex3f(_c[0] + _v[0]*1000, _c[1] + _v[1]*1000, _c[2] + _v[2]*1000);
 			glEnd();
 
 			glBegin(GL_TRIANGLES);
@@ -94,9 +95,9 @@ namespace rt {
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, _main_m.diffuse);
 			glMaterialfv(GL_FRONT, GL_SPECULAR, _main_m.specular);
 			glMaterialf(GL_FRONT, GL_SHININESS, _main_m.shinyness);
-			glVertex3f(_c[0] + _u[0] + _v[0], _c[1] + _u[1] + _v[1], _c[2] + _u[2] + _v[2]);
-			glVertex3f(_c[0] + _u[0], _c[1] + _u[1], _c[2] + _u[2]);
-			glVertex3f(_c[0] + _v[0], _c[1] + _v[1], _c[2] + _v[2]);
+			glVertex3f(_c[0] + _u[0]*1000 + _v[0]*1000, _c[1] + _u[1]*1000 + _v[1]*1000, _c[2] + _u[2]*1000 + _v[2]*1000);
+			glVertex3f(_c[0] + _u[0]*1000, _c[1] + _u[1]*1000, _c[2] + _u[2]*1000);
+			glVertex3f(_c[0] + _v[0]*1000, _c[1] + _v[1]*1000, _c[2] + _v[2]*1000);
 
 			glEnd();
 		}
@@ -115,12 +116,29 @@ namespace rt {
 
 		Real rayIntersection(const Ray &ray, Point3 &p) override
 		{
-			Vector3 N = getNormal(_c);
-			Vector3 V = ray.direction / ray.direction.norm();
-			if (V.dot(N) == 0.0f || (_c - ray.origin).norm() == 0.0f) return 1;
-			Real t = N.dot((_c - ray.origin) / (_c - ray.origin).norm()) / V.dot(N);
-			if (t > 0) p = ray.origin + ray.direction * t;
-			return -t;
+			Vector3 N = _u.cross(_v)/_u.cross(_v).norm();
+			Real rdn = ray.direction.dot(N);
+			if (rdn == .0f) return 1.f;
+			Real dist = (_c - ray.origin).dot(N) / rdn;
+			if (dist < 0) return 1.f;
+			p = ray.origin + dist * ray.direction;
+			return -1.f;
+		}
+	};
+
+	struct WaterPlane : public PeriodicPlane {
+		Real _r, _a, _l, _phi;
+
+		WaterPlane(Point3 c, Vector3 u, Vector3 v,
+				   Material main_m, Real r, Real a, Real l, Real phi)
+				   : PeriodicPlane(c, u, v, main_m, main_m, 0), _r(r), _a(a), _l(l), _phi(phi) {}
+
+		Vector3 getNormal(Point3 p) override {
+			Real x,y;
+			coordinates(p, x, y);
+			Real base = -2*M_PI*_r*sin(2*M_PI*(x * cos(_a) + y * sin(_a))/_l + _phi)/_l;
+			Vector3 norm(base*cos(_a),base*sin(_a),1);
+			return norm / norm.norm();
 		}
 	};
 

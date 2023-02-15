@@ -46,14 +46,18 @@ int main(int argc, char** argv)
 	addBubble( scene, Point3( -5, 4, -1 ), 2.0, Material::glass() );
 
 	// Un sol noir et blanc
-	PeriodicPlane* wbplane = new PeriodicPlane( Point3( 0, 0, -20 ), Vector3( 5, 0, 0 ), Vector3( 0, 5, 0 ),
+	PeriodicPlane* wbplane = new PeriodicPlane( Point3( 0, 0, -3 ), Vector3( 5, 0, 0 ), Vector3( 0, 5, 0 ),
 											   Material::whitePlastic(), Material::blackMatter(), 0.05f );
 	scene.addObject(wbplane);
 
 // Un mur de building "moderne" à gauche.
-	PeriodicPlane* buildplane = new PeriodicPlane( Point3( -10, 0, 0 ), Vector3( 0, 2, 0 ), Vector3( 0, 0, 4 ),
-											   Material::mirror(), Material::blackMatter(), 0.025f );
-	scene.addObject(buildplane);
+//	PeriodicPlane* buildplane = new PeriodicPlane( Point3( -10, 0, 0 ), Vector3( 0, 2, 0 ), Vector3( 0, 0, 4 ),
+//											   Material::mirror(), Material::blackMatter(), 0.025f );
+//	scene.addObject(buildplane);
+
+	WaterPlane* waterplane = new WaterPlane( Point3( 0, 0, -2 ), Vector3( 5, 0, 0 ), Vector3( 0, 5, 0 ),
+											   Material::blueWater(), .1f, .8f, 1.9f, 1.2f);
+	scene.addObject(waterplane);
 
 	// Instantiate the viewer.
 	Viewer viewer;
