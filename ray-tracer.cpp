@@ -34,6 +34,33 @@ void pyramid( Scene& scene, Point3 C, Real side, Material main, Material band, R
 	scene.addObject( new Triangle( A4, A1, T, main, band, w ) );
 }
 
+/// Charge un fichier .tri sur la scène au point pMin, avec une taille agrandie d'un facteur size, et composé d'un matériau m
+/// \param scene
+/// \param fName
+/// \param pMin
+/// \param size
+/// \param m
+void loadObjectFromTriFile( Scene& scene, string fName, Point3 pMin, Real size, Material m) {
+	ifstream input(fName);
+	if ( ! input.good() ) {
+		std::cerr << "ERROR WHILE LOADING : " << fName << std::endl;
+		return;
+	}
+	char junk[INT16_MAX];
+	while (!input.eof()) {
+		while (input.peek() == '#') {
+			input.getline(junk, INT16_MAX, '\n');
+		}
+		if (input.eof()) break;
+		Point3 tS[3];
+		for (int i = 0; i < 3; ++i) {
+			input >> tS[i][0] >> tS[i][1] >> tS[i][2];
+		}
+		scene.addObject(new Triangle(pMin + tS[0] * size, pMin + tS[1] * size, pMin + tS[2] * size, m, m, 0.f));
+	}
+
+}
+
 int main(int argc, char** argv)
 {
 	// Read command lines arguments.
@@ -51,13 +78,13 @@ int main(int argc, char** argv)
 	scene.addLight( light1 );
 
 	// Objects
-	Sphere* sphere1 = new Sphere( Point3( 0, 0, 0), 2.0, Material::bronze() );
-	Sphere* sphere2 = new Sphere( Point3( 0, 4, 0), 1.0, Material::emerald() );
-	Sphere* sphere3 = new Sphere( Point3( 6, 6, 0), 3.0, Material::whitePlastic() );
+	Sphere* sphere1 = new Sphere( Point3( 15, 10, -1), 2.0, Material::bronze() );
+	Sphere* sphere2 = new Sphere( Point3( 6, 6, 0), 1.0, Material::emerald() );
+	Sphere* sphere3 = new Sphere( Point3( 10, 15, 0), 3.0, Material::whitePlastic() );
 	scene.addObject( sphere1 );
 	scene.addObject( sphere2 );
 	scene.addObject( sphere3 );
-	addBubble( scene, Point3( -5, 4, -1 ), 2.0, Material::glass() );
+	addBubble( scene, Point3( 6, 6, -1 ), 2.0, Material::glass() );
 
 	// Un sol noir et blanc
 	PeriodicPlane* wbplane = new PeriodicPlane( Point3( 0, 0, -3 ), Vector3( 5, 0, 0 ), Vector3( 0, 5, 0 ),
@@ -73,7 +100,10 @@ int main(int argc, char** argv)
 											   Material::blueWater(), .1f, .8f, 1.9f, 1.2f);
 	scene.addObject(waterplane);
 
-	pyramid(scene, Point3(30, 30, -2.5),25, Material::blueWater(), Material::glass(), 0.025f);
+	pyramid(scene, Point3(30, 30, -2.5),25, Material::glass(), Material::glass(), 0.025f);
+
+	loadObjectFromTriFile(scene, "./Images/tref.tri", Point3(6,6,-2.1), 1.f, Material::glass());
+	loadObjectFromTriFile(scene, "./Images/tref.tri", Point3(6,6, 3.1), 1.f, Material::glass());
 
 	// Instantiate the viewer.
 	Viewer viewer;
