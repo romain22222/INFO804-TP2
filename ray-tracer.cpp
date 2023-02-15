@@ -20,6 +20,20 @@ void addBubble( Scene& scene, Point3 c, Real r, Material transp_m )
 	scene.addObject( sphere_out );
 	scene.addObject( sphere_in );
 }
+
+void pyramid( Scene& scene, Point3 C, Real side, Material main, Material band, Real w )
+{
+	Point3 A1 = C + Point3( -side/2.0f, -side/2.0f, 0.0f );
+	Point3 A2 = C + Point3(  side/2.0f, -side/2.0f, 0.0f );
+	Point3 A3 = C + Point3(  side/2.0f,  side/2.0f, 0.0f );
+	Point3 A4 = C + Point3( -side/2.0f,  side/2.0f, 0.0f );
+	Point3 T  = C + Point3(       0.0f,       0.0f, sqrt(2.0f)*side/2.0f );
+	scene.addObject( new Triangle( A1, A2, T, main, band, w ) );
+	scene.addObject( new Triangle( A2, A3, T, main, band, w ) );
+	scene.addObject( new Triangle( A3, A4, T, main, band, w ) );
+	scene.addObject( new Triangle( A4, A1, T, main, band, w ) );
+}
+
 int main(int argc, char** argv)
 {
 	// Read command lines arguments.
@@ -58,6 +72,8 @@ int main(int argc, char** argv)
 	WaterPlane* waterplane = new WaterPlane( Point3( 0, 0, -2 ), Vector3( 5, 0, 0 ), Vector3( 0, 5, 0 ),
 											   Material::blueWater(), .1f, .8f, 1.9f, 1.2f);
 	scene.addObject(waterplane);
+
+	pyramid(scene, Point3(30, 30, -2.5),25, Material::blueWater(), Material::glass(), 0.025f);
 
 	// Instantiate the viewer.
 	Viewer viewer;

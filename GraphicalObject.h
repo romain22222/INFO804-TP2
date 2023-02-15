@@ -142,6 +142,37 @@ namespace rt {
 		}
 	};
 
+	struct Triangle : public PeriodicPlane {
+		Triangle(Point3 a, Point3 b, Point3 c,
+				 Material main_m, Material band_m, Real w)
+				 : PeriodicPlane(a, b-a, c-a, main_m, band_m, w) {}
+
+		Real rayIntersection(const rt::Ray &ray, rt::Point3 &p) override {
+			if (PeriodicPlane::rayIntersection(ray, p) > 0) return 1.f;
+			Vector3 V = _u.cross(getNormal(p));
+			Vector3 W = _v.cross(getNormal(p));
+			Vector3 ap = p - _c;
+
+			Real beta = ap.dot(V) / _v.dot(V);
+			Real alpha = ap.dot(W) / _u.dot(W);
+
+			return (beta >= 0 && alpha >= 0 && beta + alpha <= 1) ? -1.f : 1.f;
+		}
+
+		void draw(Viewer & /* viewer */ ) override
+		{
+			glBegin(GL_TRIANGLES);
+			glColor4fv(_main_m.ambient);
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, _main_m.diffuse);
+			glMaterialfv(GL_FRONT, GL_SPECULAR, _main_m.specular);
+			glMaterialf(GL_FRONT, GL_SHININESS, _main_m.shinyness);
+			glVertex3f(_c[0], _c[1], _c[2]);
+			glVertex3f(_c[0] + _u[0], _c[1] + _u[1], _c[2] + _u[2]);
+			glVertex3f(_c[0] + _v[0], _c[1] + _v[1], _c[2] + _v[2]);
+			glEnd();
+		}
+	};
+
 } // namespace rt
 
 #endif // #define _GRAPHICAL_OBJECT_H_
