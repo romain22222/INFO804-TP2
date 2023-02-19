@@ -78,8 +78,8 @@ int main(int argc, char** argv)
 	scene.addLight( light1 );
 
 	/**
-	 * IMAGE SURREALISTE **/
-//	// Objects
+	 * LES SCENES **/
+//	// Image surréaliste
 //	Sphere* sphere1 = new Sphere( Point3( 15, 10, -1), 2.0, Material::bronze() );
 //	Sphere* sphere2 = new Sphere( Point3( 6, 6, 0), 1.0, Material::emerald() );
 //	Sphere* sphere3 = new Sphere( Point3( 10, 15, 0), 3.0, Material::whitePlastic() );
@@ -104,8 +104,8 @@ int main(int argc, char** argv)
 //
 //	pyramid(scene, Point3(30, 30, -2.5),25, Material::glass(), Material::glass(), 0.025f);
 //
-//	loadObjectFromTriFile(scene, "./Images/tref.tri", Point3(6,6,-2.1), 1.f, Material::glass());
-//	loadObjectFromTriFile(scene, "./Images/tref.tri", Point3(6,6, 3.1), 1.f, Material::glass());
+//	loadObjectFromTriFile(scene, "./Objects/tref.tri", Point3(6,6,-2.1), 1.f, Material::glass());
+//	loadObjectFromTriFile(scene, "./Objects/tref.tri", Point3(6,6, 3.1), 1.f, Material::glass());
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // // Isekai no Pyramido
