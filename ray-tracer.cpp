@@ -108,7 +108,7 @@ int main(int argc, char** argv)
 //	loadObjectFromTriFile(scene, "./Images/tref.tri", Point3(6,6, 3.1), 1.f, Material::glass());
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// // Isekai no Pyramido
 	WaterPlane* waterplane = new WaterPlane( Point3( 0, 0, -3 ), Vector3( 5, 0, 0 ), Vector3( 0, 5, 0 ),
 											   Material::blueWater(), .1f, .8f, 1.9f, 1.2f);
 	PeriodicPlane* bplane = new PeriodicPlane( Point3( 0, 0, -4 ), Vector3( 5, 0, 0 ), Vector3( 0, 5, 0 ),
@@ -188,11 +188,28 @@ int main(int argc, char** argv)
 
 
 
-
-
-
-
-
+/////////////////////////////////////////////////////////////////////////////
+// // Cover d'album futuriste
+//	WaterPlane* waterplane = new WaterPlane( Point3( 0, 0, 100 ), Vector3( 5, 0, 0 ), Vector3( 0, 5, 0 ),
+//											   Material::glass(), .2f, 2.8f, 1.6f, 1.9f);
+//	WaterPlane* waterplane2 = new WaterPlane( Point3( 0, 0, 0 ), Vector3( 5, 0, 0 ), Vector3( 0, 5, 0 ),
+//											 Material::blueWater(), .1f, .8f, 1.9f, 1.2f);
+//	PeriodicPlane* bplane2 = new PeriodicPlane( Point3( 0, 0, -5 ), Vector3( 5, 0, 0 ), Vector3( 0, 5, 0 ),
+//											   Material::emerald(), Material::bronze(), 0.05f );
+//
+//	scene.addObject(waterplane2);
+//	scene.addObject(waterplane);
+//	scene.addObject(bplane2);
+//
+//	Material m = Material::bronze();
+//	swap(m.in_refractive_index, m.out_refractive_index);
+//
+//	pyramid(scene, Point3(10, 10, -4), 15, m, m, 0.0f);
+//	addBubble(scene, Point3(6, 12, 5), 1.5f, Material::glass());
+//	addBubble(scene, Point3(12, 6, 5), 1.5f, Material::glass());
+//	addBubble(scene, Point3(3, 13, 3), 1.5f, Material::mirror());
+//	addBubble(scene, Point3(13, 3, 3), 1.5f, Material::mirror());
+//	addBubble(scene, Point3(10, 10, 7), 1.5f, Material::blueWater());
 
 
 
