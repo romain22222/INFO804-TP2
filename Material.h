@@ -102,8 +102,8 @@ namespace rt {
 			Material m;
 			m.ambient	 = Color( 0.1125, 0.0675, 0.054 );
 			m.diffuse	 = Color( 0.714, 0.4284, 0.18144 );
-			m.specular	= Color( 0.9, 0.8, 0.7 );
-			// m.specular	= Color( 0.393548, 0.271906, 0.166721 );
+//			m.specular	= Color( 0.9, 0.8, 0.7 );
+			 m.specular	= Color( 0.393548, 0.271906, 0.166721 );
 			m.shinyness = 56; // 25.6;
 			m.coef_diffusion	= 0.5f;
 			m.coef_reflexion	= 0.75f;
